@@ -98,11 +98,6 @@
             background-color: var(--wa-dark);
         }
 
-        .btn-submit:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
         .btn-submit svg {
             width: 20px;
             height: 20px;
@@ -128,8 +123,13 @@
             border: 1px solid #fad2cf;
         }
     </style>
+    <!-- FIX: Deklarasi variabel submitted di head agar dikenali oleh iframe -->
+    <script>var submitted = false;</script>
 </head>
 <body>
+
+    <!-- IFRAME TERSEMBUNYI (RAHASIA AGAR DATA MASUK SPREADSHEET TANPA RELOAD) -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) {}"></iframe>
 
     <div class="container">
         <div class="header">
@@ -137,17 +137,24 @@
             <p>SMAN 1 Kramat</p>
         </div>
 
-        <form id="waForm" onsubmit="prosesPendaftaran(event)">
+        <!-- PERHATIKAN: target="hidden_iframe" mengirim data ke iframe, bukan reload halaman -->
+        <form id="waForm" 
+              action="https://docs.google.com/forms/d/e/1FAIpQLSejEsVvF8OCQ_hyuL1swaF-FOJN-Wn0xVytEmPJP-1ZrfE2QQ/formResponse" 
+              method="post" 
+              target="hidden_iframe"
+              onsubmit="kirimData(event)">
+
             <!-- NAMA -->
             <div class="form-group">
                 <label for="nama">Nama Lengkap</label>
-                <input type="text" id="nama" class="form-control" placeholder="Masukkan nama lengkap" required>
+                <!-- name="entry.ID" harus sesuai dengan Google Form -->
+                <input type="text" id="nama" name="entry.591798677" class="form-control" placeholder="Masukkan nama lengkap" required>
             </div>
 
             <!-- KELAS -->
             <div class="form-group">
                 <label for="kelas">Kelas Terakhir</label>
-                <select id="kelas" class="form-control" required>
+                <select id="kelas" name="entry.525371776" class="form-control" required>
                     <option value="" disabled selected>Pilih Kelas</option>
                     <option value="3 IPA 1">3 IPA 1</option>
                     <option value="3 IPA 2">3 IPA 2</option>
@@ -162,7 +169,7 @@
             <!-- KAOS -->
             <div class="form-group">
                 <label for="kaos">Ukuran Kaos</label>
-                <select id="kaos" class="form-control" required>
+                <select id="kaos" name="entry.1830090641" class="form-control" required>
                     <option value="" disabled selected>Pilih Ukuran</option>
                     <option value="S">S</option>
                     <option value="M">M</option>
@@ -176,13 +183,13 @@
             <!-- NO WA -->
             <div class="form-group">
                 <label for="nowa">No WhatsApp Aktif</label>
-                <input type="tel" id="nowa" class="form-control" placeholder="08xxxxxxxxxx" required>
+                <input type="tel" id="nowa" name="entry.1333663832" class="form-control" placeholder="08xxxxxxxxxx" required>
             </div>
 
             <!-- STATUS KEHADIRAN -->
             <div class="form-group">
                 <label for="status">Status Kehadiran</label>
-                <select id="status" class="form-control" required>
+                <select id="status" name="entry.142912708" class="form-control" required>
                     <option value="" disabled selected>Pilih Status</option>
                     <option value="Hadir Sendiri">Hadir Sendiri</option>
                     <option value="Hadir dengan Pasangan">Hadir dengan Pasangan</option>
@@ -193,16 +200,20 @@
             <!-- STATUS PEMBAYARAN -->
             <div class="form-group">
                 <label for="status_bayar">Status Pembayaran</label>
-                <select id="status_bayar" class="form-control" onchange="toggleBukti()" required>
+                <select id="status_bayar" name="entry.1651037305" class="form-control" onchange="toggleBukti()" required>
                     <option value="Belum Bayar" selected>Belum Bayar</option>
                     <option value="Sudah Transfer">Sudah Transfer</option>
                 </select>
             </div>
 
-            <!-- UPLOAD BUKTI (Hanya muncul jika Sudah Transfer) -->
+            <!-- UPLOAD BUKTI (UI SAJA) -->
             <div class="form-group" id="container-bukti" style="display: none;">
                 <label for="bukti_foto">Lampirkan Bukti Transfer</label>
                 <input type="file" id="bukti_foto" class="form-control" accept="image/*">
+                
+                <!-- Input Tersembunyi untuk Mengirim Nama File ke Google Form -->
+                <input type="hidden" id="hidden_bukti_filename" name="entry.619785811" value="-">
+
                 <div class="warning-text">
                     <strong>Penting:</strong> Sistem WhatsApp Web tidak bisa mengupload gambar secara otomatis.<br><br>
                     Mohon <strong>kirim foto bukti transfer secara manual</strong> (paste/attach) di chat WhatsApp yang terbuka setelah Anda menekan tombol di bawah.
@@ -211,14 +222,19 @@
 
             <!-- PILIH ADMIN / PIC -->
             <div class="form-group">
-                <label for="pic">Kirim Pendaftaran Ke (Admin)</label>
-                <select id="pic" class="form-control" required>
+                <label for="pic_select">Kirim Pendaftaran Ke (Admin)</label>
+                <!-- Dropdown ini hanya untuk memilih nomor HP, tidak dikirim langsung -->
+                <select id="pic_select" class="form-control" required>
                     <option value="" disabled selected>Pilih Admin Tujuan</option>
+                    <!-- Valuenya adalah NOMOR HP (untuk WA), Textnya adalah NAMA (untuk Spreadsheet) -->
                     <option value="6285771314236">Candra</option>
                     <option value="6285810450507">Hadi Wibowo</option>
                     <option value="6281542022810">Nur Hidayah</option>
                     <option value="6285878793438">Titin Mulyana</option>
                 </select>
+                
+                <!-- Input Tersembunyi untuk Mengirim NAMA ADMIN ke Google Form -->
+                <input type="hidden" id="hidden_pic_name" name="entry.1422930090">
             </div>
 
             <button type="submit" id="btnKirim" class="btn-submit">
@@ -230,25 +246,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // KONFIGURASI FINAL BERDASARKAN LINK ANDA
-        // ==========================================
-        // URL Form Response
-        const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSejEsVvF8OCQ_hyuL1swaF-FOJN-Wn0xVytEmPJP-1ZrfE2QQ/formResponse";
-
-        // ID Entry dari link yang Anda berikan (SUDAH DIPERBARUI)
-        const FORM_ENTRIES = {
-            nama: "entry.591798677",   
-            kelas: "entry.525371776",  
-            kaos: "entry.1830090641",   
-            nowa: "entry.1333663832",   
-            status: "entry.142912708", 
-            bayar: "entry.1651037305",  
-            pic: "entry.1422930090", // SUDAH UPDATE: ID dari link terbaru
-            bukti: "entry.619785811" // ID Bukti Bayar (dari link sebelumnya agar tetap aktif)
-        };
-        // ==========================================
-
         function toggleBukti() {
             const statusBayar = document.getElementById('status_bayar').value;
             const container = document.getElementById('container-bukti');
@@ -259,77 +256,45 @@
             }
         }
 
-        async function prosesPendaftaran(e) {
-            e.preventDefault(); 
+        function kirimData(e) {
+            // Jangan gunakan e.preventDefault() agar form tetap tersubmit ke Iframe (Google Sheets)
+            
+            // 1. SIAPKAN DATA NAMA PIC (Agar yang masuk spreadsheet adalah Namanya)
+            const picSelect = document.getElementById('pic_select');
+            const picName = picSelect.options[picSelect.selectedIndex].text; // Ambil Teks (Nama)
+            const picPhone = picSelect.value; // Ambil Value (Nomor HP)
+            
+            // Masukkan Nama ke input tersembunyi untuk dikirim ke Google Form
+            document.getElementById('hidden_pic_name').value = picName;
 
-            // Ambil data dari form HTML
+            // 2. SIAPKAN NAMA FILE BUKTI (Jika ada)
+            const fileInput = document.getElementById('bukti_foto');
+            if (fileInput.files.length > 0) {
+                document.getElementById('hidden_bukti_filename').value = fileInput.files[0].name;
+            } else {
+                document.getElementById('hidden_bukti_filename').value = "-";
+            }
+
+            // 3. AMBIL DATA LAIN UNTUK WHATSAPP
             const nama = document.getElementById('nama').value;
             const kelas = document.getElementById('kelas').value;
             const kaos = document.getElementById('kaos').value;
             const nowa = document.getElementById('nowa').value;
             const status = document.getElementById('status').value;
             const statusBayar = document.getElementById('status_bayar').value;
+
+            submitted = true;
             
-            // PERBAIKAN: Ambil Nama dan Nomor HP terpisah
-            const picSelect = document.getElementById('pic');
-            const picPhone = picSelect.value; // Value = Nomor HP (untuk WA)
-            const picName = picSelect.options[picSelect.selectedIndex].text; // Text = Nama Admin (untuk Google Form)
-
-            const fileInput = document.getElementById('bukti_foto');
-
-            // Validasi sederhana
-            if (!picPhone) {
-                alert("Mohon pilih Admin Tujuan terlebih dahulu.");
-                return;
-            }
-
-            // Ubah tampilan tombol biar user tau sedang proses
-            const btn = document.getElementById('btnKirim');
-            const btnText = document.getElementById('btnText');
-            const originalText = btnText.innerText;
-            
-            btn.disabled = true;
-            btnText.innerText = "Menyimpan Data...";
-
-            // 1. KIRIM DATA KE GOOGLE FORM
-            try {
-                const formData = new FormData();
-                formData.append(FORM_ENTRIES.nama, nama);
-                formData.append(FORM_ENTRIES.kelas, kelas);
-                formData.append(FORM_ENTRIES.kaos, kaos);
-                formData.append(FORM_ENTRIES.nowa, nowa);
-                formData.append(FORM_ENTRIES.status, status);
-                formData.append(FORM_ENTRIES.bayar, statusBayar);
-                formData.append(FORM_ENTRIES.pic, picName); // KIRIM NAMA ADMIN, BUKAN NOMOR HP
-
-                // Cek apakah ada file bukti bayar (jika ID tersedia)
-                if (fileInput && fileInput.files.length > 0) {
-                    formData.append(FORM_ENTRIES.bukti, fileInput.files[0].name);
-                } else if (FORM_ENTRIES.bukti) {
-                     formData.append(FORM_ENTRIES.bukti, "-");
+            // 4. BUKA WHATSAPP (Dengan Jeda Sedikit agar Form sempat terkirim)
+            setTimeout(function() {
+                let pesanBayar = "";
+                if(statusBayar === "Sudah Transfer") {
+                    pesanBayar = "Sudah Transfer (Foto bukti saya lampirkan manual)";
+                } else {
+                    pesanBayar = "Belum Bayar (Mohon info pembayaran)";
                 }
 
-                // Kirim fetch dengan mode 'no-cors' agar tidak error cross-origin
-                await fetch(GOOGLE_FORM_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
-                });
-            } catch (error) {
-                console.error("Gagal menyimpan ke Google Form", error);
-            }
-
-            // 2. LANJUT KE WHATSAPP (Setelah data tersimpan/dicoba simpan)
-            
-            // Logika pesan pembayaran
-            let pesanBayar = "";
-            if(statusBayar === "Sudah Transfer") {
-                pesanBayar = "Sudah Transfer (Foto bukti saya lampirkan manual)";
-            } else {
-                pesanBayar = "Belum Bayar (Mohon info pembayaran)";
-            }
-
-            const templatePesan = `Halo Panitia Reuni Perak SMAN 1 Kramat,
+                const templatePesan = `Halo Panitia Reuni Perak SMAN 1 Kramat,
 
 Saya ingin mendaftar reuni:
 
@@ -342,23 +307,19 @@ Saya ingin mendaftar reuni:
 
 Mohon infonya. Terima kasih.`;
 
-            // GUNAKAN NOMOR HP UNTUK URL WHATSAPP
-            const urlWA = `https://wa.me/${picPhone}?text=${encodeURIComponent(templatePesan)}`;
-
-            // Kembalikan tombol ke kondisi semula
-            btn.disabled = false;
-            btnText.innerText = originalText;
-
-            // Buka WhatsApp
-            if(statusBayar === "Sudah Transfer") {
-                const konfirmasi = confirm("Data tersimpan!\n\nIngat: Foto bukti transfer TIDAK AKAN terkirim otomatis.\nSilakan 'Paste' atau 'Lampirkan' foto secara manual di chat WhatsApp.\n\nKlik OK untuk buka WhatsApp.");
-                if(konfirmasi) {
+                const urlWA = `https://wa.me/${picPhone}?text=${encodeURIComponent(templatePesan)}`;
+                
+                // Peringatan Bukti Bayar
+                if(statusBayar === "Sudah Transfer") {
+                    alert("Data Anda sedang disimpan...\n\nIngat: Foto bukti transfer TIDAK AKAN terkirim otomatis.\nSilakan 'Paste' atau 'Lampirkan' foto secara manual di chat WhatsApp.");
+                    window.open(urlWA, '_blank');
+                } else {
                     window.open(urlWA, '_blank');
                 }
-            } else {
-                // Redirect langsung jika belum bayar
-                window.open(urlWA, '_blank');
-            }
+                
+                // Reset form opsional
+                // document.getElementById('waForm').reset();
+            }, 500); // Jeda 0.5 detik
         }
     </script>
 </body>
