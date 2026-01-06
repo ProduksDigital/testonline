@@ -231,12 +231,12 @@
 
     <script>
         // ==========================================
-        // KONFIGURASI FINAL BERDASARKAN LINK TERBARU
+        // KONFIGURASI FINAL BERDASARKAN LINK ANDA
         // ==========================================
         // URL Form Response
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSejEsVvF8OCQ_hyuL1swaF-FOJN-Wn0xVytEmPJP-1ZrfE2QQ/formResponse";
 
-        // ID Entry dari link yang Anda berikan (SUDAH DIPERBARUI SEMUA)
+        // ID Entry dari link yang Anda berikan (SUDAH DIPERBARUI)
         const FORM_ENTRIES = {
             nama: "entry.591798677",   
             kelas: "entry.525371776",  
@@ -244,8 +244,7 @@
             nowa: "entry.1333663832",   
             status: "entry.142912708", 
             bayar: "entry.1651037305",  
-            pic: "entry.1422930090", // ID PIC
-            bukti: "entry.619785811" // <--- UPDATE: ID Bukti Bayar
+            pic: "entry.1422930090", // SUDAH UPDATE: ID dari link terbaru
         };
         // ==========================================
 
@@ -270,7 +269,6 @@
             const status = document.getElementById('status').value;
             const statusBayar = document.getElementById('status_bayar').value;
             const pic = document.getElementById('pic').value; 
-            const fileInput = document.getElementById('bukti_foto');
 
             // Validasi sederhana
             if (!pic) {
@@ -295,15 +293,7 @@
                 formData.append(FORM_ENTRIES.nowa, nowa);
                 formData.append(FORM_ENTRIES.status, status);
                 formData.append(FORM_ENTRIES.bayar, statusBayar);
-                formData.append(FORM_ENTRIES.pic, pic); 
-                
-                // Cek apakah ada file bukti bayar
-                if (fileInput.files.length > 0) {
-                    // Kirim NAMA FILE sebagai teks (karena upload file butuh login Google)
-                    formData.append(FORM_ENTRIES.bukti, fileInput.files[0].name);
-                } else {
-                     formData.append(FORM_ENTRIES.bukti, "-");
-                }
+                formData.append(FORM_ENTRIES.pic, pic); // Data PIC akan terkirim dengan ID yang benar
 
                 // Kirim fetch dengan mode 'no-cors' agar tidak error cross-origin
                 await fetch(GOOGLE_FORM_URL, {
