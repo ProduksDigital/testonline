@@ -231,10 +231,12 @@
 
     <script>
         // ==========================================
-        // KONFIGURASI OTOMATIS (SUDAH DISETTING)
+        // KONFIGURASI FINAL BERDASARKAN LINK ANDA
         // ==========================================
+        // URL Form Response
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSejEsVvF8OCQ_hyuL1swaF-FOJN-Wn0xVytEmPJP-1ZrfE2QQ/formResponse";
 
+        // ID Entry dari link yang Anda berikan (SUDAH DIPERBARUI)
         const FORM_ENTRIES = {
             nama: "entry.591798677",   
             kelas: "entry.525371776",  
@@ -242,7 +244,7 @@
             nowa: "entry.1333663832",   
             status: "entry.142912708", 
             bayar: "entry.1651037305",  
-            // pic: Tidak ada slot di Google Form, data tetap ada di HTML untuk routing WA
+            pic: "entry.1422930090", // SUDAH UPDATE: ID dari link terbaru
         };
         // ==========================================
 
@@ -291,7 +293,7 @@
                 formData.append(FORM_ENTRIES.nowa, nowa);
                 formData.append(FORM_ENTRIES.status, status);
                 formData.append(FORM_ENTRIES.bayar, statusBayar);
-                // PIC tidak dikirim ke Google Form karena tidak ada slot ID-nya
+                formData.append(FORM_ENTRIES.pic, pic); // Data PIC akan terkirim dengan ID yang benar
 
                 // Kirim fetch dengan mode 'no-cors' agar tidak error cross-origin
                 await fetch(GOOGLE_FORM_URL, {
