@@ -245,6 +245,7 @@
             status: "entry.142912708", 
             bayar: "entry.1651037305",  
             pic: "entry.1422930090", // SUDAH UPDATE: ID dari link terbaru
+            bukti: "entry.619785811" // ID Bukti Bayar (dari link sebelumnya agar tetap aktif)
         };
         // ==========================================
 
@@ -268,10 +269,16 @@
             const nowa = document.getElementById('nowa').value;
             const status = document.getElementById('status').value;
             const statusBayar = document.getElementById('status_bayar').value;
-            const pic = document.getElementById('pic').value; 
+            
+            // PERBAIKAN: Ambil Nama dan Nomor HP terpisah
+            const picSelect = document.getElementById('pic');
+            const picPhone = picSelect.value; // Value = Nomor HP (untuk WA)
+            const picName = picSelect.options[picSelect.selectedIndex].text; // Text = Nama Admin (untuk Google Form)
+
+            const fileInput = document.getElementById('bukti_foto');
 
             // Validasi sederhana
-            if (!pic) {
+            if (!picPhone) {
                 alert("Mohon pilih Admin Tujuan terlebih dahulu.");
                 return;
             }
@@ -293,7 +300,14 @@
                 formData.append(FORM_ENTRIES.nowa, nowa);
                 formData.append(FORM_ENTRIES.status, status);
                 formData.append(FORM_ENTRIES.bayar, statusBayar);
-                formData.append(FORM_ENTRIES.pic, pic); // Data PIC akan terkirim dengan ID yang benar
+                formData.append(FORM_ENTRIES.pic, picName); // KIRIM NAMA ADMIN, BUKAN NOMOR HP
+
+                // Cek apakah ada file bukti bayar (jika ID tersedia)
+                if (fileInput && fileInput.files.length > 0) {
+                    formData.append(FORM_ENTRIES.bukti, fileInput.files[0].name);
+                } else if (FORM_ENTRIES.bukti) {
+                     formData.append(FORM_ENTRIES.bukti, "-");
+                }
 
                 // Kirim fetch dengan mode 'no-cors' agar tidak error cross-origin
                 await fetch(GOOGLE_FORM_URL, {
@@ -328,7 +342,8 @@ Saya ingin mendaftar reuni:
 
 Mohon infonya. Terima kasih.`;
 
-            const urlWA = `https://wa.me/${pic}?text=${encodeURIComponent(templatePesan)}`;
+            // GUNAKAN NOMOR HP UNTUK URL WHATSAPP
+            const urlWA = `https://wa.me/${picPhone}?text=${encodeURIComponent(templatePesan)}`;
 
             // Kembalikan tombol ke kondisi semula
             btn.disabled = false;
